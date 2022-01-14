@@ -1,0 +1,70 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: This template Create IAM Role that allow GitHub Cloud push images to ECR.
+
+Parameters:
+
+  OIDCProviderArn:
+    Description: Arn for the GitHub OIDC Provider.
+    Default: ""
+    Type: String
+
+  RoleName:
+    Type: String
+
+  GitHubAccessScope:
+    Type: String
+
+Resources:
+  EcrPushRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "github-actions-${RoleName}-ecr"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRoleWithWebIdentity
+            Principal:
+              Federated: !Ref OIDCProviderArn
+            Condition:
+              StringLike:
+                token.actions.githubusercontent.com:sub: !Sub "repo:${GitHubAccessScope}"
+
+  EcrPushRootPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: "root"
+      Roles:
+        - !Ref EcrPushRole
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: 'ecr:GetAuthorizationToken'
+            Resource: '*'
+
+  TestEcrRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: github/test-repository
+      RepositoryPolicyText:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowGitHubPushPull
+            Effect: Allow
+            Principal:
+              AWS:
+                - !GetAtt EcrPushRole.Arn
+            Action:
+              - "ecr:GetDownloadUrlForLayer"
+              - "ecr:BatchGetImage"
+              - "ecr:BatchCheckLayerAvailability"
+              - "ecr:PutImage"
+              - "ecr:InitiateLayerUpload"
+              - "ecr:UploadLayerPart"
+              - "ecr:CompleteLayerUpload"
+
+Outputs:
+  RoleArn:
+    Value: !GetAtt EcrPushRole.Arn

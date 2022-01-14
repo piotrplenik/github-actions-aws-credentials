@@ -1,0 +1,23 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: This template Create OIDC Provider for GitHub Cloud.
+
+Resources:
+
+  GithubOidc:
+    Type: AWS::IAM::OIDCProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList:
+        - "sts.amazonaws.com"
+      ThumbprintList:
+        - 15E29108718111E59B3DAD31954647E3C344A231
+
+## Getting proper thunbprint: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_create_oidc_verify-thumbprint.html
+# 1. `curl https://token.actions.githubusercontent.com/.well-known/openid-configuration | jq '.jwks_uri'`
+# 2. `openssl s_client -servername token.actions.githubusercontent.com -showcerts -connect token.actions.githubusercontent.com:443 | openssl x509  -fingerprint -noout | sed 's/://g' | sed 's/SHA1 Fingerprint=//' `
+`
+
+Outputs:
+  GithubOidc:
+    Value: !Ref GithubOidc
