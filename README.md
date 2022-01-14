@@ -58,7 +58,7 @@ GITHUB_ACCESS_SCOPE="octo-org/octo-repo:ref:*"
 GITHUB_ACCESS_SCOPE="octo-org/octo-repo:ref:refs/heads/octo-branch"
 ```
 
-Create stack with new role from the [template](cloudformation/GitHubECRPublishRole.yaml):
+Create stack with new role from the [template](cloudformation/GitHubECRPublishRole.cfn.yaml):
 
 ```bash
 GITHUB_ACCESS_SCOPE="octo-org/octo-repo:ref:refs/heads/octo-branch"
@@ -68,7 +68,7 @@ STACK_NAME="GitHubOctoOrgPushECRRole"
 # Create Stack
 aws cloudformation create-stack \
     --stack-name $STACK_NAME \
-    --template-body file://cloudformation/GitHubECRPublishRole.yaml \
+    --template-body file://cloudformation/GitHubECRPublishRole.cfn.yaml \
     --capabilities CAPABILITY_NAMED_IAM \
     --parameters \
         ParameterKey=OIDCProviderArn,ParameterValue=$OIDC_PROVIDER \
